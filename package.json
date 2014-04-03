@@ -1,7 +1,7 @@
 {
   "name": "module-loader-tdd",
   "description": "Module loader that lets you test each module with private methods and stubbed dependencies",
-  "version": "0.3.0-RC1",
+  "version": "0.3.1",
   "repository": {
     "type": "git",
     "url": "https://github.com/christianalfoni/module-loader-tdd.git"

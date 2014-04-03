@@ -3,12 +3,13 @@
     "use strict";
 
     /*!
-     * module-loader-tdd  v.0.3.0-RC1
+     * module-loader-tdd  v.0.3.1
      */
 
     var definedModules = [];
     var initializedModules = [];
     var globalTemplates = 'Templates';
+//    var tempDepExceptions = [];
     var resourceHandler = null;
 
 
@@ -116,6 +117,31 @@
             }
         },
 
+        // Verifies that there is a corresponding module for all listed dependencies.
+        verifyThatAllDependenciesAreMet: function (definedModules) {
+            var namesOfRegisteredModules = [];
+
+            // Find name of all modules
+            for (var i = 0; i < definedModules.length; i += 1) {
+                var moduleName = definedModules[i][0];
+                namesOfRegisteredModules.push(moduleName);
+            }
+
+            // Look through dependencies for all modules. If a dependency is not in list of registered modules, throw.
+            // Note: Stops on first module that has an unmet dependency
+            for (var i = 0; i < definedModules.length; i += 1) {
+                var dependencies = definedModules[i][1];
+
+                for (var k = 0; k < dependencies.length; k++) {
+                    var dependency = dependencies[k];
+
+                    if (namesOfRegisteredModules.indexOf(dependency) === -1) {
+                        p.throw('Oops, seems like you forgot to include module "' + dependency + '" that is a dependency of "'+definedModules[i][0]+'"! Include it or check spelling of module names.');
+                    }
+                }
+            }
+        },
+
         // Initializes registered modules.
         // Has a trial-and-error approach that will try another module if one fails, and get back to the first one later.
         sortedInLoadOrder: function (definedModules) {
@@ -138,6 +164,8 @@
                 dependencyGraph.push([module.name, module.dependencies]);
                 modules[module.name] = module;
             }
+
+            p.verifyThatAllDependenciesAreMet(dependencyGraph);
 
             // Decide load order (Array of module names)
             loadOrder = p.compileLoadOrderFromDependencyGraph(dependencyGraph);
@@ -540,7 +568,7 @@
          * */
         compileLoadOrderFromDependencyGraph: function (dependencyGraph) {
             var loadOrder = [];
-
+//TODO: Improve error reporting when all scripts are not imported in index.html (or similar). The issue that arises is that extractFirstLoadableModule() fails as there is no obvious new to pick as some are missing and one of them would be the next to load.
             // Loop modules once. Using length of dependencyGraph as modules are being removed for each loadable module.
             while (dependencyGraph.length) {
                 var loadable = p.extractFirstLoadableModule(dependencyGraph);
