@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+</head>
+<body>
+
+<!--<script src="dist/module-loader-tdd.min.js"></script>-->
+<script src="libs/acorn.js"></script>
+<script src="src/module-loader-tdd.js"></script>
+<script>
+
+    modules.initialize(function (require) {
+        require('test');
+        console.log('owoh');
+    });
+
+    modules.create('test', function (require, p, resource) {
+        require('bah');
+        var test = resource.fetch('config', 'hm');
+        return {};
+    });
+
+    modules.create('bah', function (require, p, resource) {
+
+        resource.register('config', function () {
+            return 'foo';
+        });
+        return {};
+    });
+
+
+
+</script>
+</body>
+</html>
