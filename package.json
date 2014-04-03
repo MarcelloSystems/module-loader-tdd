@@ -7,6 +7,9 @@
     "url": "https://github.com/christianalfoni/module-loader-tdd.git"
   },
   "main": "lib/module-loader-tdd",
+  "scripts": {
+    "test": "grunt tdd:browser"
+  },
   "devDependencies": {
     "grunt": "~0.4.2",
     "grunt-contrib-watch": "^0.6.0",
