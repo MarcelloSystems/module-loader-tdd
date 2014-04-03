@@ -177,6 +177,33 @@
             }
         },
 
+
+        'p.verifyThatAllDependenciesAreMet()': {
+            'is a function': function () {
+                expect(p.verifyThatAllDependenciesAreMet).to.be.a('function');
+            },
+            'takes one argument (definedModules)': function () {
+                expect(p.verifyThatAllDependenciesAreMet).to.have.length(1);
+            },
+            'throws when dependency is not among registered modules. Includes names of modules in error message': function () {
+                var definedModules = [
+                    ['modA', ['modB']],
+                    ['modB', ['modC']] // Should throw as modC is not defined as a module
+                ];
+
+                expect(p.verifyThatAllDependenciesAreMet).withArgs(definedModules).to.throwError(/mod[BC]/);
+            },
+            'does not throw when all dependencies can be met': function() {
+                var definedModules = [
+                    ['modA', ['modB']],
+                    ['modB', ['modC']],
+                    ['modC', []]
+                ];
+                expect(p.verifyThatAllDependenciesAreMet).withArgs(definedModules).not.to.throwError();
+            }
+        },
+
+
         'p.getSortedInLoadOrder()': {
             tearDown: function () {
                 modules.reset();
@@ -185,7 +212,7 @@
                 expect(p.sortedInLoadOrder).to.be.a('function');
             },
             'takes one argument (defined)': function () {
-                expect(p.sortedInLoadOrder.length).to.be(1);
+                expect(p.sortedInLoadOrder).to.have.length(1);
             },
             //TODO: Move these to the method that loads modules
             '//adds initialized modules to the "initialized" array': function () {
