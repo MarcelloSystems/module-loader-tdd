@@ -647,10 +647,13 @@
 
         resourceHandler = p.createResourceHandler();
 
-        // Arm events that signals ready-for-init
-        document.addEventListener("DOMContentLoaded", init);
-        document.addEventListener("deviceready", init);
-
+        // Arm events that signals ready-for-init, unless already loaded
+        if (document.readyState == "complete" || document.readyState == "loaded") {
+            init();
+        } else {
+            document.addEventListener("DOMContentLoaded", init);
+            document.addEventListener("deviceready", init);
+        }
 
         // Perform final init and execute users init code in the callback
         function init() {
