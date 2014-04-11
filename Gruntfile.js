@@ -97,7 +97,7 @@ module.exports = function (grunt) {
     // TASKS
     grunt.registerTask('build-min', ['uglify:loader', 'uglify:parser', 'concat:dist-min', 'string-replace:version', 'clean:tmp']);
     grunt.registerTask('build-dev', ['concat:dist-dev', 'string-replace:version', 'clean:tmp']);
-    grunt.registerTask('build', ['clean:dist', 'build', 'build-dev']);
+    grunt.registerTask('build', ['clean:dist', 'build-min', 'build-dev']);
 
     grunt.registerTask('default', ['tdd:browser']);
 

@@ -6,8 +6,7 @@
      * module-loader-tdd  v.0.3.1
      */
 
-    var definedModules = [];
-    var initializedModules = [];
+
     var globalTemplates = 'Templates';
 //    var tempDepExceptions = [];
     var resourceHandler = null;
@@ -55,7 +54,7 @@
                     }
 
                     resourceCallbacks[type] = function () {
-                        return callback.apply(window, event.detail.value);
+                        return callback.apply(window, arguments);
                     };
                 },
                 fetch: function (type) {
@@ -606,85 +605,100 @@
     //////////////////////////////////////////////////////////////////////
     // PUBLIC
 
-    var publicInterface = {
-        _privates: p,
+    function Modules () {
+      this.definedModules = [];
+      this.initializedModules = [];
+    }
 
-        /*
-         * The public method used to create a new module
-         * first argument is name as a string
-         * Second argument is the function that will create the module
-         * */
-        create: function (name, func) {
-
-            // Verify that user has provided module name and body as expected
-            if (!name || typeof name !== 'string' || !func || typeof func !== 'function') {
-                p.throw('Invalid arguments for module creation, you have to pass a string and a function');
-            }
-
-            // Add it to list of defined modules awaiting initialization.
-            p.addModule(definedModules, name, func);
-        },
-
-        /*
-         * The public method used to initialize all added modules. Typically called inside <script> in index.html or in main.js
-         * "callback" is the code the user wants to run first when modules are ready.
-         * */
-        initialize: function (callback) {
-
-            if (this.templatesPath) {
-                this.templatesPath = p.sanitizeTemplatesPath(this.templatesPath);
-            }
-            if (this.templates) {
-                globalTemplates = this.templates;
-            }
-
-            resourceHandler = p.createResourceHandler();
-
-            // Arm events that signals ready-for-init
-            document.addEventListener("DOMContentLoaded", init);
-            document.addEventListener("deviceready", init);
+    Modules.prototype._privates = p;
 
 
-            // Perform final init and execute users init code in the callback
-            function init() {
-                document.removeEventListener("DOMContentLoaded", init);
-                document.removeEventListener("deviceready", init);
+    /*
+     * The public method used to create a new module
+     * first argument is name as a string
+     * Second argument is the function that will create the module
+     * */
+    Modules.prototype.create = function (name, func) {
 
-                var orderedModules = p.sortedInLoadOrder(definedModules);
-                p.loadOrderedModules(orderedModules, initializedModules);
-
-                var context = p.createContext(initializedModules);
-                callback.apply(context, p.contextToArray(context));
-            }
-        },
-
-        /*
-         * Test a given module
-         * */
-        test: function (name, callback) {
-
-            resourceHandler = p.createResourceHandler(true); // To prevent modules from registering resource //TODO MK: Why is this created here while also being called in apply below?
-
-            var orderedModules = p.sortedInLoadOrder(definedModules);
-
-            // Load modules, getting the context for the test subject in return to use for invoking the callback below
-            var context = p.loadForTest(name, orderedModules, initializedModules);
-
-            // Args to apply: context, [module under test, privates, dependencies, resource]
-            callback.apply(context, [context.exports, context.privates, context.deps, p.createResourceHandler(false)]);
-        },
-
-
-        reset: function () {
-            initializedModules = [];
-            definedModules = [];
+        // Verify that user has provided module name and body as expected
+        if (!name || typeof name !== 'string' || !func || typeof func !== 'function') {
+            p.throw('Invalid arguments for module creation, you have to pass a string and a function');
         }
+
+        // Add it to list of defined modules awaiting initialization.
+        p.addModule(this.definedModules, name, func);
     };
 
+    /*
+     * The public method used to initialize all added modules. Typically
+     * called inside <script> in index.html or in main.js
+     * "callback" is the code the user wants to run first when modules are ready.
+     * */
+    Modules.prototype.initialize = function (callback) {
+
+        var self = this;
+
+        if (this.templatesPath) {
+            this.templatesPath = p.sanitizeTemplatesPath(this.templatesPath);
+        }
+        if (this.templates) {
+            globalTemplates = this.templates;
+        }
+
+        resourceHandler = p.createResourceHandler();
+
+        // Arm events that signals ready-for-init
+        document.addEventListener("DOMContentLoaded", init);
+        document.addEventListener("deviceready", init);
+
+
+        // Perform final init and execute users init code in the callback
+        function init() {
+            document.removeEventListener("DOMContentLoaded", init);
+            document.removeEventListener("deviceready", init);
+
+            var orderedModules = p.sortedInLoadOrder(self.definedModules);
+            p.loadOrderedModules(orderedModules, self.initializedModules);
+
+            var context = p.createContext(self.initializedModules);
+            callback.apply(context, p.contextToArray(context));
+        }
+    }
+
+    /*
+     * Test a given module
+     * */
+    Modules.prototype.test = function (name, callback) {
+
+        // To prevent modules from registering resource while testing
+        resourceHandler = p.createResourceHandler(true);
+        //TODO MK: Why is this created here while also being called in apply below?
+
+        var orderedModules = p.sortedInLoadOrder(this.definedModules);
+
+        // Load modules, getting the context for the test subject in
+        // return to use for invoking the callback below
+        var context = p.loadForTest(name, orderedModules, this.initializedModules);
+
+        // Args to apply: context, [module under test, privates, dependencies, resource]
+        callback.apply(context, [
+          context.exports,
+          context.privates,
+          context.deps,
+          p.createResourceHandler(false)
+        ]);
+    },
+
+
+    Modules.prototype.reset = function () {
+        this.initializedModules = [];
+        this.definedModules = [];
+    }
 
     // Expose module to environment
-    window.modules = publicInterface;
-}());;
+    window.modules = new Modules();
+}());
+;
 // Acorn is a tiny, fast JavaScript parser written in JavaScript.
 //
 // Acorn was written by Marijn Haverbeke and released under an MIT
