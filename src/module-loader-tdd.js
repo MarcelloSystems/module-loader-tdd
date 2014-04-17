@@ -673,24 +673,42 @@
      * */
     Modules.prototype.test = function (name, callback) {
 
-        // To prevent modules from registering resource while testing
-        resourceHandler = p.createResourceHandler(true);
-        //TODO MK: Why is this created here while also being called in apply below?
+        var self = this;
 
-        var orderedModules = p.sortedInLoadOrder(this.definedModules);
+        // Arm events that signals ready-for-test, unless already loaded
+        if (document.readyState == "complete" ||
+            document.readyState == "loaded" ||
+            document.readyState == "interactive") {
+            test();
+        } else {
+            document.addEventListener("DOMContentLoaded", test);
+            document.addEventListener("deviceready", test);
+        }
 
-        // Load modules, getting the context for the test subject in
-        // return to use for invoking the callback below
-        var context = p.loadForTest(name, orderedModules, this.initializedModules);
+        // Run test when ready
+        function test() {
 
-        // Args to apply: context, [module under test, privates, dependencies, resource]
-        callback.apply(context, [
-          context.exports,
-          context.privates,
-          context.deps,
-          p.createResourceHandler(false)
-        ]);
-    },
+            // To prevent modules from registering resource while testing
+            resourceHandler = p.createResourceHandler(true);
+            //TODO MK: Why is this created here while also being called in apply below?
+
+            var orderedModules = p.sortedInLoadOrder(self.definedModules);
+
+            // Load modules, getting the context for the test subject in
+            // return to use for invoking the callback below
+            var context = p.loadForTest(name, orderedModules, self.initializedModules);
+
+            // Args to apply: context, [module under test, privates, dependencies, resource]
+            callback.apply(context, [
+                context.exports,
+                context.privates,
+                context.deps,
+                p.createResourceHandler(false)
+            ]);
+
+        }
+
+    };
 
 
     Modules.prototype.reset = function () {
