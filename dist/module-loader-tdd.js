@@ -252,7 +252,7 @@
          * */
         getTemplateByXhr: function (path) {
             var xhr = new XMLHttpRequest();
-            path = (window.modules.templatesPath || 'templates/') + path + '.hbs';
+            path = (window.modules.templatesPath || '/templates/') + path + '.hbs';
             xhr.open('GET', path, false);
             xhr.send(null);
 
