@@ -648,7 +648,7 @@
         resourceHandler = p.createResourceHandler();
 
         // Arm events that signals ready-for-init, unless already loaded
-        if (document.readyState == "complete" || document.readyState == "loaded") {
+        if (document.readyState == "complete" || document.readyState == "loaded" || document.readyState == "interactive") {
             init();
         } else {
             document.addEventListener("DOMContentLoaded", init);
